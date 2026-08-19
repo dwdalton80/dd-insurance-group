@@ -51,6 +51,21 @@ The live site (`ddinsgroup.com`) is hosted on **Cloudflare Pages**, deployed via
 run build`), **output directory:** `dist`. Where exactly to configure this depends
 on how the Cloudflare project is wired — see the action item in [§5](#5-action-items--things-to-verify-in-the-cloudflare-dashboard).
 
+### Security headers
+
+[`client/public/_headers`](../client/public/_headers) sets response headers
+(CSP, `X-Frame-Options`, `Strict-Transport-Security`, `Referrer-Policy`,
+`Permissions-Policy`, `X-Content-Type-Options`) via [Cloudflare Pages' `_headers`
+convention](https://developers.cloudflare.com/pages/configuration/headers/) — it's
+copied into `dist/` on every build the same way `favicon.ico` and `manifest.json`
+are, since it lives in `client/public/`. The CSP is intentionally scoped to the
+exact third parties the site loads (Formspree, Calendly, Google Fonts, and the two
+hotlinked Unsplash images) — if you add a new external script/font/image/API host
+anywhere in the app, update this file's `Content-Security-Policy` line too, or that
+resource will be silently blocked by the browser in production only (dev mode
+doesn't enforce it). Re-check with [securityheaders.com](https://securityheaders.com/?q=ddinsgroup.com)
+after any change here.
+
 ### How deploys are triggered
 
 This repo does **not** contain a GitHub Actions workflow (no `.github/workflows/`
@@ -112,26 +127,24 @@ have to reverse-engineer from scratch.
 
 ## 4. Environment variables & secrets
 
-| Variable | Used in | Required for live site? | Notes |
-|---|---|---|---|
-| `VITE_FRONTEND_FORGE_API_KEY` | `client/src/components/Map.tsx` | **No** — component is unused/unrouted (see `ARCHITECTURE.md` §6) | Manus-platform Maps proxy key. Do not bother recreating unless `Map.tsx` gets wired into a page and rewritten to call Google directly. |
-| `VITE_FRONTEND_FORGE_API_URL` | same | **No** | Same as above; defaults to `https://forge.butterfly-effect.dev` (Manus infra) if unset. |
+**None are required.** A repo-wide grep for `import.meta.env` / `process.env`
+turns up nothing — there is no `.env` or `.env.example` file in the repo (both are
+gitignored, and neither exists on disk either).
 
-**That's the complete list** — a repo-wide grep for `import.meta.env` / `process.env`
-turns up nothing else. There is no `.env` or `.env.example` file in the repo (both
-are gitignored, and neither exists on disk here either).
+(As of 2026-08-19, this used to be a two-variable table: `VITE_FRONTEND_FORGE_API_KEY`
+/ `VITE_FRONTEND_FORGE_API_URL`, read by a dead `client/src/components/Map.tsx`
+component that loaded Google Maps through a Manus-platform-only API proxy. That
+component was unused/unrouted and has since been deleted — see
+[`ARCHITECTURE.md` §6](./ARCHITECTURE.md#6-removed-leftover-manus-dependency). If
+Cloudflare Pages' project settings still have either variable configured, it's now
+inert dead weight and safe to remove.)
 
-**No build-time or runtime secrets are actually required for the site to work.**
-Everything the live site depends on — Formspree endpoint IDs, the Sunfire URL — is
-hardcoded as plain (non-secret) values in [`client/src/const.ts`](../client/src/const.ts),
+**No build-time or runtime secrets are required for the site to work.** Everything
+the live site depends on — Formspree endpoint IDs, the Sunfire URL — is hardcoded
+as plain (non-secret) values in [`client/src/const.ts`](../client/src/const.ts),
 because none of it is sensitive: Formspree endpoint IDs and the Sunfire PURL are
-not credentials, just public-facing URLs (comparable to a public API endpoint,
-not an API key).
-
-If Cloudflare Pages' project settings have `VITE_FRONTEND_FORGE_API_KEY` configured
-as a build environment variable, it's inert dead weight (safe to remove) given
-`Map.tsx` isn't rendered anywhere — but confirm before removing, in case someone
-re-enables the map before reading this doc.
+not credentials, just public-facing URLs (comparable to a public API endpoint, not
+an API key).
 
 ## 5. Action items — things to verify in the Cloudflare dashboard
 

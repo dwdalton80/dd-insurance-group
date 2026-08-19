@@ -44,7 +44,6 @@ The things that actually require action during a transfer are:
 | 8 | **Google Search Console** | Site ownership verified via a TXT record on the domain | — (DNS only) | Google account that owns the verification | Whoever manages SEO/search presence |
 | 9 | **Google Fonts** | Plus Jakarta Sans + Inter, loaded live from `fonts.googleapis.com` | `client/index.html` | None — free, no account needed | N/A |
 | 10 | **Unsplash** | Two stock photo URLs are hotlinked directly from `images.unsplash.com` rather than hosted locally | `client/src/const.ts` → `BRAND_ASSETS.clientCouple`, `BRAND_ASSETS.businessGroup` | None, but see limitation below | N/A |
-| 11 | *(dormant)* Manus / `forge.butterfly-effect.dev` | Google Maps proxy — see `ARCHITECTURE.md` §6. **Not live** — the component that uses it is never rendered. | `client/src/components/Map.tsx` | N/A — no credential needed unless this is revived | N/A |
 
 ### Important note on #5 (Sunfire / SOA compliance)
 
@@ -123,13 +122,20 @@ downtime.
 Full detail on each of these lives in `ARCHITECTURE.md` and `DEPLOYMENT.md`; this
 is the acquisition-diligence-friendly summary list.
 
+**Resolved (2026-08-19):**
+
+| Item | Resolution |
+|---|---|
+| Dead Manus Maps proxy dependency in `Map.tsx` | Deleted — nothing referenced it. |
+| Dual lockfiles (`package-lock.json` + `pnpm-lock.yaml`) | `pnpm-lock.yaml` deleted; `package-lock.json`/npm is canonical. |
+| No security headers (CSP, X-Frame-Options, HSTS, Referrer-Policy, Permissions-Policy, X-Content-Type-Options) | Added via `client/public/_headers` (Cloudflare Pages custom headers), scoped to the third parties this site actually loads. Verify live at [securityheaders.com](https://securityheaders.com/?q=ddinsgroup.com) after the next deploy. |
+
+**Still open:**
+
 | Item | Risk if ignored | Effort to fix |
 |---|---|---|
 | SPF/DKIM misconfigured for Microsoft 365 email (`DEPLOYMENT.md` §3) | Outbound business email may land in spam or get rejected | Low — DNS record changes in Microsoft 365 admin center |
-| Dead Manus Maps proxy dependency in `Map.tsx` (unused, `ARCHITECTURE.md` §6) | None today; would silently break if someone wires it up without reading this doc | Low — delete the file, or rewrite against Google Maps directly |
-| Dual lockfiles (`package-lock.json` + `pnpm-lock.yaml`) | A future contributor installs with the wrong package manager, gets a different dependency tree than what's actually deployed | Trivial — delete `pnpm-lock.yaml` |
-| No security headers (CSP, X-Frame-Options, Referrer-Policy) — verified absent via live response headers as of 2026-08-19 | Missing defense-in-depth against XSS/clickjacking; low actual risk given the site has no auth/user data, but easy to fix on Cloudflare | Low — add via Cloudflare Pages `_headers` file or Transform Rules |
-| Two images hotlinked from `images.unsplash.com` instead of hosted locally (`const.ts`) | Site has a live runtime dependency on Unsplash's CDN staying up and those specific URLs staying valid; also slightly slower / an extra DNS lookup for visitors | Low — download and serve from `client/public/images/` like every other image |
+| Two images hotlinked from `images.unsplash.com` instead of hosted locally (`const.ts`) | Site has a live runtime dependency on Unsplash's CDN staying up and those specific URLs staying valid; also slightly slower / an extra DNS lookup for visitors. Also required as a CSP `img-src` exception — remove the exception when this is fixed. | Low — download and serve from `client/public/images/` like every other image |
 | `client/public/404.html` is a leftover GitHub Pages SPA shim, redundant under Cloudflare's `wrangler.json` handling | None functionally; mildly confusing to a future dev | Trivial |
 | No `robots.txt` | Relies on default crawler behavior instead of explicit control | Trivial |
 | `package.json` declares `"license": "MIT"` with no `LICENSE` file, on a proprietary business site | Ambiguous/likely-wrong IP licensing signal | Trivial — decide intent, fix the field |

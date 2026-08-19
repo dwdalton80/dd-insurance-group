@@ -62,6 +62,8 @@ No test runner is actually wired up to CI, but `vitest` is a dependency and
 │   ├── public/                 # Copied verbatim into the build output
 │   │   ├── favicon.ico
 │   │   ├── manifest.json       # PWA manifest (icons, theme color, shortcuts)
+│   │   ├── _headers             # ⭐ Cloudflare Pages security response headers
+│   │   │                        #   (CSP, HSTS, X-Frame-Options, etc.) — see DEPLOYMENT.md
 │   │   ├── 404.html            # Legacy GitHub Pages SPA fallback — not needed
 │   │   │                        # on Cloudflare Pages, see DEPLOYMENT.md
 │   │   └── images/             # ALL site images (~15 MB, ~55 files) — logos,
@@ -78,7 +80,6 @@ No test runner is actually wired up to CI, but `vitest` is a dependency and
 │       │   ├── Layout.tsx        # Header/nav/footer wrapper used on every page
 │       │   ├── BookingForm.tsx   # Booking form → Formspree + Sunfire redirect
 │       │   ├── MedicaidCheckTool.tsx  # Self-contained interactive quiz widget
-│       │   ├── Map.tsx           # ⚠️ Unused dead component, see §6
 │       │   ├── ErrorBoundary.tsx
 │       │   └── ui/               # shadcn/ui primitives (button, dialog, etc.)
 │       ├── contexts/ThemeContext.tsx
@@ -119,27 +120,21 @@ There is also a `PlainEnglish.tsx` page file present in `client/src/pages/` that
 intentionally taken down. Worth a quick check with whoever last touched it before
 assuming it's safe to delete.
 
-## 6. Known leftover Manus dependency (not currently live)
+## 6. Removed: leftover Manus dependency
 
-`client/src/components/Map.tsx` is a Google Maps wrapper that loads the Maps
-JavaScript API through **Manus's own API proxy** (`forge.butterfly-effect.dev`,
-read from `VITE_FRONTEND_FORGE_API_KEY` / `VITE_FRONTEND_FORGE_API_URL`) rather
-than calling Google directly with a Google Cloud API key.
+`client/src/components/Map.tsx` used to exist as a Google Maps wrapper that loaded
+the Maps JavaScript API through **Manus's own API proxy**
+(`forge.butterfly-effect.dev`) rather than calling Google directly. It was never
+imported or rendered anywhere in the app (confirmed via grep before removal), so it
+had no effect on the live site — but it was the one piece of code that still
+assumed Manus-specific infrastructure existed, and would have failed silently if
+anyone wired it into a page without reading this note first. **It has been
+deleted** (see git history if you need to resurrect it as a reference).
 
-**This component is not imported or rendered anywhere in the app** — grep confirms
-zero consumers — so it has **no effect on the live site today**. It's flagged here
-because:
-- If anyone wires it into a page in the future without noticing the proxy URL, the
-  map **will not work** off the Manus platform (the proxy is Manus-hosted
-  infrastructure this project no longer has access to), and it will fail silently
-  except for `console.error` logs.
-- It's the one piece of code in the repo that still assumes Manus-specific
-  infrastructure exists.
-
-**Recommendation:** either delete `Map.tsx` entirely (nothing depends on it), or —
-if a map is wanted on the site (e.g. a service-area map on `/about` or `/contact`)
-— rewrite it to load the Google Maps JS API directly with a real Google Cloud
-Console API key, restricted to `ddinsgroup.com`.
+If a map is wanted on the site in the future (e.g. a service-area map on `/about`
+or `/contact`), build it against the Google Maps JS API directly with a real
+Google Cloud Console API key, restricted to `ddinsgroup.com` — not a
+platform-specific proxy.
 
 ## 7. Data flow / integrations summary
 
@@ -161,12 +156,6 @@ breaks if they're not recreated — are in [`HANDOFF.md`](./HANDOFF.md#external-
 
 ## 8. Known limitations / cleanup opportunities
 
-- **Dual lockfiles.** Both `package-lock.json` (npm) and `pnpm-lock.yaml` (pnpm,
-  leftover from the Manus/pnpm-based build) are committed. `package-lock.json` is
-  the one that matches current `package.json` and current build docs — treat it as
-  canonical. Having both risks a future contributor installing with the wrong tool
-  and getting a dependency tree that silently doesn't match what's deployed.
-  Recommendation: delete `pnpm-lock.yaml`.
 - **`client/public/404.html`** is a GitHub Pages-style SPA fallback
   (`window.location.replace('/')`, loses the originally-requested path). It's
   redundant now — Cloudflare Pages handles SPA routing correctly via
