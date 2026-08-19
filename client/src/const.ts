@@ -47,8 +47,8 @@ export const TRUST_BADGES = [
 
 // Formspree form endpoints — replace YOUR_FORM_ID with the ID from your Formspree dashboard
 // (Formspree > New Form > copy the endpoint shown, looks like https://formspree.io/f/xxxxxxxx)
-export const FORMSPREE_BOOKING_ENDPOINT = "https://formspree.io/f/YOUR_BOOKING_FORM_ID";
-export const FORMSPREE_CONTACT_ENDPOINT = "https://formspree.io/f/YOUR_CONTACT_FORM_ID";
+export const FORMSPREE_BOOKING_ENDPOINT = "https://formspree.io/f/xnpalpkz";
+export const FORMSPREE_CONTACT_ENDPOINT = "https://formspree.io/f/xdenyerw";
 
 // Sunfire SOA (Scope of Appointment) redirect link for Medicare bookings
 export const SUNFIRE_PURL_URL = "https://sunfire.example.com/soa";
