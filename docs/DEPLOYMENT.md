@@ -151,13 +151,17 @@ an API key).
 None of the following are visible from the repo and need to be checked directly in
 Cloudflare's dashboard (Pages project → Settings) by whoever has access:
 
-1. **Git integration**: is this Pages project connected to
-   `dwdalton80/dd-insurance-group` on GitHub, and which branch is "Production"
-   (almost certainly `main`, but confirm — see the branch-hygiene note in
-   [`HANDOFF.md`](./HANDOFF.md))? If yes, every push to that branch auto-deploys.
+1. ~~**Git integration**: is this Pages project connected to
+   `dwdalton80/dd-insurance-group` on GitHub~~ — **confirmed 2026-08-19**: pushing
+   to `main` auto-deploys with no manual step. Verified by pushing the `_headers`
+   commit and observing the new response headers live within ~4 minutes. Still
+   worth confirming in the dashboard which branch is bound as "Production" if you
+   ever work from a non-`main` branch.
 2. **Build command / output directory** configured in the Pages project — should
-   be `npm run build` / `dist`. If it was set up differently (e.g. some leftover
-   config from before `wrangler.json` existed), reconcile it.
+   be `npm run build` / `dist`. Given the auto-deploy above produced a correct
+   build, this is almost certainly already right, but wasn't independently
+   confirmed. If it was set up differently (e.g. some leftover config from before
+   `wrangler.json` existed), reconcile it.
 3. **Environment variables** set on the Pages project (Production and Preview) —
    record whatever's there for the handoff package, even if (per §4) nothing is
    strictly required today.
