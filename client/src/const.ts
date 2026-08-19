@@ -51,4 +51,4 @@ export const FORMSPREE_BOOKING_ENDPOINT = "https://formspree.io/f/xnpalpkz";
 export const FORMSPREE_CONTACT_ENDPOINT = "https://formspree.io/f/xdenyerw";
 
 // Sunfire SOA (Scope of Appointment) redirect link for Medicare bookings
-export const SUNFIRE_PURL_URL = "https://sunfire.example.com/soa";
+export const SUNFIRE_PURL_URL = "https://www.sunfirematrix.com/app/consumer/ember/?sfpath=spa&sfagid=20791041";
