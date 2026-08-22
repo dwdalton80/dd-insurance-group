@@ -9,10 +9,11 @@ export const BRAND_ASSETS = {
   serviceMap: "/images/oklahoma-texas-map-optimized_1d0b5a0e.jpg",
   medicareTrust: "/images/medicare-trust-optimized_98ca04f8.jpg",
   
-  // High-quality stock portrait placeholders
+  // High-quality stock portrait placeholders (downloaded from Unsplash and hosted
+  // locally — originally hotlinked from images.unsplash.com, see docs/HANDOFF.md)
   larryHeadshot: "/images/Image-1_03_e6dda05b.jpg", // Larry's professional headshot from ads
-  clientCouple: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=800",
-  businessGroup: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800"
+  clientCouple: "/images/client-couple-unsplash.jpg",
+  businessGroup: "/images/business-group-unsplash.jpg"
 };
 
 export const LARRY_INFO = {

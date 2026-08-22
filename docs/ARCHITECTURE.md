@@ -46,11 +46,12 @@ One leftover from that history still lives in the code (see [§6](#6-known-lefto
 | Icons | lucide-react |
 | Forms | react-hook-form + zod (validation schemas) |
 | Fonts | Google Fonts (Plus Jakarta Sans for headings, Inter for body) — loaded via `<link>` in `client/index.html`, no self-hosting |
-| Package manager | npm (see [§8](#8-known-limitations--cleanup-opportunities) — a stale `pnpm-lock.yaml` is also present and should be removed) |
+| Package manager | npm (canonical — the stale `pnpm-lock.yaml` leftover has been removed) |
 | Hosting/build | Cloudflare Pages via Wrangler (see [`DEPLOYMENT.md`](./DEPLOYMENT.md)) |
 
-No test runner is actually wired up to CI, but `vitest` is a dependency and
-`vitest.config.ts` exists — see [§8](#8-known-limitations--cleanup-opportunities).
+There is no test runner configured — an orphaned `vitest.config.ts` (referencing a
+`server/`/`shared/` layout that no longer exists) was removed on 2026-08-21; `vitest`
+itself was never a dependency in this repo's `package.json`.
 
 ## 4. Repository structure
 
@@ -64,10 +65,11 @@ No test runner is actually wired up to CI, but `vitest` is a dependency and
 │   │   ├── manifest.json       # PWA manifest (icons, theme color, shortcuts)
 │   │   ├── _headers             # ⭐ Cloudflare Pages security response headers
 │   │   │                        #   (CSP, HSTS, X-Frame-Options, etc.) — see DEPLOYMENT.md
-│   │   ├── 404.html            # Legacy GitHub Pages SPA fallback — not needed
-│   │   │                        # on Cloudflare Pages, see DEPLOYMENT.md
-│   │   └── images/             # ALL site images (~15 MB, ~55 files) — logos,
+│   │   ├── robots.txt / sitemap.xml
+│   │   └── images/             # ALL site images (~15 MB, ~57 files) — logos,
 │   │                            # hero photos, badges, Larry's headshot, etc.
+│   │                            # (includes the two former Unsplash hotlinks,
+│   │                            # now downloaded and self-hosted)
 │   └── src/
 │       ├── main.tsx             # React root / entry point
 │       ├── App.tsx              # Route table (wouter) + top-level providers
@@ -111,14 +113,13 @@ Defined in [`client/src/App.tsx`](../client/src/App.tsx), rendered inside
 | `/booking` | `Booking.tsx` → `BookingForm.tsx` | Consultation request form (Formspree) → redirects to Sunfire SOA |
 | `/booking-confirmation` | `BookingConfirmation.tsx` | Static "thanks, here's what's next" page |
 | `/faq` | `FAQ.tsx` | FAQ accordion |
+| `/plain-english` | `PlainEnglish.tsx` | "Medicare in Plain English" — 8 expandable guides (Parts A–D, Medigap, enrollment periods) + FAQ. Linked from the footer's Resources column and from a callout on `/medicare`. |
 | `/privacy-policy` | `PrivacyPolicy.tsx` | Legal |
 | `/terms-of-service` | `TermsOfService.tsx` | Legal |
 | `/404`, and any unmatched path | `NotFound.tsx` | 404 page |
 
-There is also a `PlainEnglish.tsx` page file present in `client/src/pages/` that is
-**not wired into any route** in `App.tsx` — dead/unused, or a page that was
-intentionally taken down. Worth a quick check with whoever last touched it before
-assuming it's safe to delete.
+(`PlainEnglish.tsx` existed in the repo but wasn't wired into any route until
+2026-08-21 — it was substantial, finished content that had just never been linked.)
 
 ## 6. Removed: leftover Manus dependency
 
@@ -147,29 +148,25 @@ Visitor's browser
   │                              then redirects browser to ──▶ Sunfire SOA (SUNFIRE_PURL_URL)
   ├─ Contact form  ──POST──▶  Formspree (FORMSPREE_CONTACT_ENDPOINT)
   ├─ Contact page  ──loads──▶  Calendly embedded widget (calendly.com/ddinsgroup)
-  ├─ All pages     ──loads──▶  Google Fonts (fonts.googleapis.com)
-  └─ const.ts      ──hotlinks──▶  2 Unsplash stock photo URLs (see HANDOFF.md limitations)
+  └─ All pages     ──loads──▶  Google Fonts (fonts.googleapis.com)
 ```
+
+All images, including what used to be 2 hotlinked Unsplash stock photos, are now
+served from `client/public/images/` — there are no other outbound image requests.
 
 Full details on each of these — what they are, what credentials they need, what
 breaks if they're not recreated — are in [`HANDOFF.md`](./HANDOFF.md#external-accounts--integrations-inventory).
 
 ## 8. Known limitations / cleanup opportunities
 
-- **`client/public/404.html`** is a GitHub Pages-style SPA fallback
-  (`window.location.replace('/')`, loses the originally-requested path). It's
-  redundant now — Cloudflare Pages handles SPA routing correctly via
-  `wrangler.json`'s `not_found_handling: "single-page-application"` (deep links
-  like `/booking` resolve directly, no client-side redirect/flash). Safe to delete,
-  or keep as a harmless fallback-of-a-fallback.
-- **`vitest` is a dependency and `vitest.config.ts` exists, but there are no test
-  files** anywhere in `client/src` and no `test` script in `package.json`. Either
-  add tests or remove the unused test tooling.
-- **No `robots.txt`.** Not blocking anything today, but worth adding explicitly
-  (even a permissive one) rather than relying on default crawler behavior.
-- **No `LICENSE` file**, despite `package.json` declaring `"license": "MIT"`. For a
-  commercial/proprietary business site this is almost certainly not intentional —
-  an MIT license notionally permits anyone to reuse the code. Recommend either
-  removing the `license` field or setting it to `"UNLICENSED"` / a proprietary
-  notice, whichever reflects actual intent.
-- **`PlainEnglish.tsx`** page exists but isn't routed (see [§5](#5-routes--pages)).
+All previously-open items in this section (dual lockfiles, the dead Manus Maps
+proxy, missing security headers, the redundant `404.html`, hotlinked Unsplash
+images, the unused `vitest` config, the unrouted `PlainEnglish.tsx` page, and the
+ambiguous MIT license field) were resolved on 2026-08-21 — see
+[`HANDOFF.md` §5](./HANDOFF.md#5-known-limitations--technical-debt-consolidated)
+for the full record of what changed.
+
+**Still open** (not fixable from inside this repo — see `DEPLOYMENT.md` §3 for the
+full runbook): the domain's SPF record only authorizes GoDaddy's mail servers, and
+no DKIM is published, while mail is actually hosted on Microsoft 365. This is a DNS
++ Microsoft 365 admin-center fix, not a code change.

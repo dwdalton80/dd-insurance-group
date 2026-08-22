@@ -233,6 +233,11 @@ export default function Layout({ children }: LayoutProps) {
             </h3>
             <ul className="flex flex-col gap-2.5 text-sm">
               <li>
+                <Link href="/plain-english" className="text-gray-300 hover:text-white transition-colors">
+                  Medicare in Plain English
+                </Link>
+              </li>
+              <li>
                 <Link href="/medicare" className="text-gray-300 hover:text-white transition-colors">
                   Medicare Guidance & Education
                 </Link>

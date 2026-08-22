@@ -6,9 +6,7 @@
 #   - assets.calendly.com / calendly.com  → embedded scheduling widget (Contact page)
 #   - fonts.googleapis.com / fonts.gstatic.com → Google Fonts
 #   - formspree.io                         → booking + contact form submissions (fetch)
-#   - images.unsplash.com                  → 2 hotlinked stock photos (see HANDOFF.md
-#                                             known limitations — remove once those
-#                                             images are hosted locally, then drop this)
+# All images are self-hosted from /images/ — no external image hosts needed.
 # style-src needs 'unsafe-inline' for the inline <style> block in client/index.html
 # (font-family rules) — there is no inline/external JavaScript that needs 'unsafe-inline'.
 
@@ -18,4 +16,4 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
   Strict-Transport-Security: max-age=15552000; includeSubDomains
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://assets.calendly.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com; connect-src 'self' https://formspree.io; frame-src https://calendly.com https://*.calendly.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://assets.calendly.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://formspree.io; frame-src https://calendly.com https://*.calendly.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'

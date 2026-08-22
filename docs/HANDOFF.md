@@ -128,20 +128,25 @@ is the acquisition-diligence-friendly summary list.
 |---|---|
 | Dead Manus Maps proxy dependency in `Map.tsx` | Deleted — nothing referenced it. |
 | Dual lockfiles (`package-lock.json` + `pnpm-lock.yaml`) | `pnpm-lock.yaml` deleted; `package-lock.json`/npm is canonical. |
-| No security headers (CSP, X-Frame-Options, HSTS, Referrer-Policy, Permissions-Policy, X-Content-Type-Options) | Added via `client/public/_headers` (Cloudflare Pages custom headers), scoped to the third parties this site actually loads. Verify live at [securityheaders.com](https://securityheaders.com/?q=ddinsgroup.com) after the next deploy. |
+| No security headers (CSP, X-Frame-Options, HSTS, Referrer-Policy, Permissions-Policy, X-Content-Type-Options) | Added via `client/public/_headers` (Cloudflare Pages custom headers), scoped to the third parties this site actually loads. Verified live via response headers same day. |
+
+**Resolved (2026-08-21):**
+
+| Item | Resolution |
+|---|---|
+| Two images hotlinked from `images.unsplash.com` | Downloaded and self-hosted as `client/public/images/client-couple-unsplash.jpg` and `business-group-unsplash.jpg`; `const.ts` updated; the now-unneeded `images.unsplash.com` CSP `img-src` exception was removed from `_headers`. |
+| `client/public/404.html` (leftover GitHub Pages SPA shim) | Deleted — confirmed redundant given `wrangler.json`'s `not_found_handling: "single-page-application"`. |
+| No `robots.txt` | Added (`client/public/robots.txt`), permissive, pointing at a new `sitemap.xml` also added covering all public routes. |
+| `package.json` declared `"license": "MIT"` with no `LICENSE` file | Changed to `"license": "UNLICENSED"` (proprietary business site, per owner decision). |
+| `vitest.config.ts` present with zero test files | Deleted — `vitest` was never actually a dependency in `package.json` either; the config file was an orphan from the pre-conversion template referencing a `server/`/`shared/` layout that no longer exists. |
+| `PlainEnglish.tsx` page existed but wasn't routed anywhere | Wired up at `/plain-english` (per owner decision — it was finished, substantial content, not abandoned work), linked from the footer's Resources column and from a callout on `/medicare`. |
 
 **Still open:**
 
 | Item | Risk if ignored | Effort to fix |
 |---|---|---|
-| SPF/DKIM misconfigured for Microsoft 365 email (`DEPLOYMENT.md` §3) | Outbound business email may land in spam or get rejected | Low — DNS record changes in Microsoft 365 admin center |
-| Two images hotlinked from `images.unsplash.com` instead of hosted locally (`const.ts`) | Site has a live runtime dependency on Unsplash's CDN staying up and those specific URLs staying valid; also slightly slower / an extra DNS lookup for visitors. Also required as a CSP `img-src` exception — remove the exception when this is fixed. | Low — download and serve from `client/public/images/` like every other image |
-| `client/public/404.html` is a leftover GitHub Pages SPA shim, redundant under Cloudflare's `wrangler.json` handling | None functionally; mildly confusing to a future dev | Trivial |
-| No `robots.txt` | Relies on default crawler behavior instead of explicit control | Trivial |
-| `package.json` declares `"license": "MIT"` with no `LICENSE` file, on a proprietary business site | Ambiguous/likely-wrong IP licensing signal | Trivial — decide intent, fix the field |
-| `vitest` installed and configured but zero test files exist | False sense of test coverage; no safety net for regressions | Medium — either write tests or remove the tooling |
-| `PlainEnglish.tsx` page exists but isn't routed anywhere | Dead code, or an accidentally-orphaned page — worth a 2-minute check with the last person who touched it | Trivial once resolved |
-| Cloudflare Pages Git integration / build settings are undocumented (live only in the dashboard) | A new team can't verify or reproduce the deploy pipeline from the repo alone | Low — one-time: log in, screenshot/document the settings into this doc |
+| SPF/DKIM misconfigured for Microsoft 365 email | Outbound business email may land in spam or get rejected | Low, but needs Cloudflare DNS + Microsoft 365 admin center access neither this session nor the repo has — full step-by-step runbook in [`DEPLOYMENT.md` §3](./DEPLOYMENT.md#fix-runbook) |
+| Cloudflare Pages Git integration / build settings are undocumented (live only in the dashboard) | A new team can't verify or reproduce the deploy pipeline from the repo alone | Low — one-time: log in, screenshot/document the settings into this doc. (Auto-deploy-on-push to `main` *is* now confirmed working, per `DEPLOYMENT.md` §5 — the build command/output directory and env var config are the only pieces still unverified.) |
 
 ## 6. Conventions for maintaining & scaling this project
 

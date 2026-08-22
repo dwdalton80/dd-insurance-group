@@ -118,12 +118,71 @@ Mail is hosted on **Microsoft 365** (per MX/autodiscover), but:
   (possibly via a GoDaddy "Office 365 from GoDaddy" bundle, which would explain the
   SPF pointing at GoDaddy while MX points at Microsoft).
 
-**Recommendation:** whoever administers the Microsoft 365 tenant should (a) add
-Microsoft's SPF include and DKIM CNAMEs per Microsoft's own domain setup
-instructions, or (b) re-run the Microsoft 365 domain setup wizard, which normally
-provisions all of this automatically. This is an email-deliverability fix, not a
-website change — flagging it here because DNS is what a new owner would otherwise
-have to reverse-engineer from scratch.
+#### Fix runbook
+
+This needs **two separate systems** — Cloudflare DNS and the Microsoft 365 admin
+center — done by whoever has access to each (likely the same person). Neither is
+something I can do from this session (no Cloudflare or Microsoft 365 credentials
+here) — this is the exact set of steps to hand to whoever does.
+
+**Step 1 — Fix SPF (Cloudflare DNS).**
+In the Cloudflare dashboard → `ddinsgroup.com` → DNS → Records, find the root TXT
+record currently reading `v=spf1 include:secureserver.net -all` and replace its
+value with:
+
+```
+v=spf1 include:spf.protection.outlook.com -all
+```
+
+This authorizes Microsoft 365's servers (what MX actually points to) instead of
+GoDaddy's. Only keep `include:secureserver.net` alongside it (as a second
+`include:`) if some other GoDaddy-hosted service is *also* known to send mail as
+`@ddinsgroup.com` — nothing found in this audit suggests that's the case, since MX
+points exclusively to Microsoft 365.
+
+**Step 2 — Enable DKIM (Microsoft 365 admin center).**
+DKIM can't be turned on by publishing DNS records alone — Microsoft 365 needs to
+be told to sign with them first, and the exact CNAME targets should be **copied
+from the admin center**, not guessed, to avoid a typo that silently breaks signing:
+
+1. Sign in to the [Microsoft 365 Defender portal](https://security.microsoft.com/)
+   with an account that administers this tenant → **Email & collaboration** →
+   **Policies & rules** → **Threat policies** → **Email authentication settings**
+   → **DKIM**.
+2. Select `ddinsgroup.com`. It will very likely show DKIM as **not enabled** and
+   display two CNAME records to publish first (they'll resemble, but confirm
+   exactly):
+   ```
+   selector1._domainkey.ddinsgroup.com  →  selector1-ddinsgroup-com._domainkey.NETORGFT15576544.onmicrosoft.com
+   selector2._domainkey.ddinsgroup.com  →  selector2-ddinsgroup-com._domainkey.NETORGFT15576544.onmicrosoft.com
+   ```
+   (The `NETORGFT15576544.onmicrosoft.com` portion is this tenant's verified
+   default domain, confirmed via the TXT record in the table above — but copy the
+   exact strings the admin center shows rather than retyping these.)
+3. Add both as **CNAME** records in Cloudflare DNS, **DNS only / not proxied**
+   (grey-clouded, not orange) — proxying a DKIM CNAME through Cloudflare breaks
+   it.
+4. Back in the Defender portal, click **Enable** for DKIM on `ddinsgroup.com`. It
+   may report "not found yet" for a few minutes while DNS propagates — retry after
+   ~15 minutes if so.
+
+**Step 3 — Verify.** After both steps, send a test email from `larry@ddinsgroup.com`
+to a Gmail address (or use [mail-tester.com](https://www.mail-tester.com/)) and
+check the received message's headers for `spf=pass` and `dkim=pass`. Re-check the
+DNS records from a terminal too:
+```bash
+dig +short ddinsgroup.com TXT | grep spf
+dig +short selector1._domainkey.ddinsgroup.com CNAME
+dig +short selector2._domainkey.ddinsgroup.com CNAME
+```
+
+**Optional cleanup:** the DMARC record's aggregate-report address
+(`rua=mailto:dmarc_rua@onsecureserver.net`) is a GoDaddy-managed mailbox — worth
+confirming someone still actually reads those reports, or repointing it to an
+address the current site owner monitors.
+
+This is purely an email-deliverability fix — it does not touch the website, the
+Cloudflare Pages deployment, or any code in this repo.
 
 ## 4. Environment variables & secrets
 

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Phone, Calendar } from 'lucide-react';
+import { Phone, Calendar, BookOpen, ArrowRight } from 'lucide-react';
 import { LARRY_INFO } from '@/const';
 import MedicaidCheckTool from '@/components/MedicaidCheckTool';
 
@@ -112,6 +113,16 @@ export default function DDInsureMedicarePage() {
             </div>
 
           </div>
+
+          <Link href="/plain-english" className="mt-8 flex items-center justify-between gap-4 bg-[#F4F7FC] hover:bg-[#EAF0FB] border border-[#0B1E3D]/10 rounded-xl p-5 transition-colors group">
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-6 h-6 text-[#D32F2F] flex-shrink-0" />
+              <span className="text-sm md:text-base font-semibold text-[#0B1E3D]">
+                Want more detail? Read the full <span className="underline decoration-[#D32F2F]/40">Medicare in Plain English</span> guide — enrollment periods, Medigap, and a full FAQ.
+              </span>
+            </div>
+            <ArrowRight className="w-5 h-5 text-[#D32F2F] flex-shrink-0 transition-transform group-hover:translate-x-1" />
+          </Link>
         </section>
 
 
